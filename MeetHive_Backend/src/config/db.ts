@@ -1,14 +1,12 @@
 /**
- * @file db.js
- * @module src/config/db.js
+ * @file db.ts
+ * @module src/config/db.ts
  * @description Database configuration using pg (node-postgres)
  */
-import pkg from "pg";
+import { Pool } from "pg";
 import dotenv from "dotenv";
 
 dotenv.config();
-
-const { Pool } = pkg;
 
 // Create a new pool instance with configuration from environment variables
 const pool = new Pool({
@@ -16,20 +14,18 @@ const pool = new Pool({
   host: process.env.DB_HOST,
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
+  port: Number(process.env.DB_PORT),
 });
 
 // Function to connect to the database and handle connection errors
-const connectDB = async () => {
+export const connectDB = async (): Promise<void> => {
   try {
     await pool.connect();
-    console.log("Connected to PostgreSQL Suscessfully");
+    console.log("Connected to PostgreSQL successfully");
   } catch (err) {
-    console.error("Connection error:", err.message);
-    process.exit(1); 
+    console.error("Connection error:", (err as Error).message);
+    process.exit(1);
   }
 };
-
-connectDB();
 
 export default pool;
