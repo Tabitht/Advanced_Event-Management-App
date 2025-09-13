@@ -1,0 +1,25 @@
+model RefreshToken {
+  id          String   @id @default(cuid())
+  hashedToken String // store hashed value of token
+  userId      String
+  issuedAt    DateTime @default(now())
+  expiresAt   DateTime
+  revoked     Boolean  @default(false)
+  replacedBy  String? // id of replacement token (rotation)
+  ip          String?
+  userAgent   String?
+
+  //Relations
+  user User @relation(fields: [userId], references: [id])
+}
+
+model ResetToken {
+  id          String   @id @default(cuid())
+  hashedToken String
+  userId      String
+  expiresAt   DateTime
+  used        Boolean  @default(false)
+
+  //Relations
+  user User @relation(fields: [userId], references: [id])
+}

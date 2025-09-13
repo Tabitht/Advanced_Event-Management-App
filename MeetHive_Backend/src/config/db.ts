@@ -10,11 +10,11 @@ dotenv.config();
 
 // Create a new pool instance with configuration from environment variables
 const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: Number(process.env.DB_PORT),
+  user: process.env.DB_USER || "postgres",
+  host: process.env.DB_HOST || "db",
+  database: process.env.DB_NAME || "mydb",
+  password: process.env.DB_PASSWORD || "postgres",
+  port: Number(process.env.DB_PORT) || 5432,
 });
 
 // Function to connect to the database and handle connection errors

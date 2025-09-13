@@ -1,0 +1,23 @@
+model User {
+  id            String         @id @default(cuid())
+  name          String?
+  email         String         @unique
+  password      String
+  role          Role           @default(USER) //Role e.g User, Organizer or Admin etc
+  avatarUrl     String? //Url to profile picture
+  bio           String? //Description
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  refreshTokens RefreshToken[]
+  resetTokens   ResetToken[]
+
+  //Relations
+  organizer Organizer?
+}
+
+/// Enum for roles
+enum Role {
+  USER
+  ORGANIZER
+  ADMIN
+}
