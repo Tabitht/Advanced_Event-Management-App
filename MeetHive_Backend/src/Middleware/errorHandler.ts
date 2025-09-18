@@ -1,12 +1,12 @@
 /**
- * @module src/Middelware/errorHandler.js
+ * @module src/Middelware/errorHandler.ts
  * @description central error handler for handling errors and their status code
  */
 import { Request, Response, NextFunction } from "express";
 import HttpError from "../Utils/HttpError.js";
 
 // custom middelware error handler
-export const errorHandler = (
+const errorHandler = (
   error: HttpError,
   _request: Request,
   response: Response,
@@ -17,3 +17,5 @@ export const errorHandler = (
     message: error.message || "Internal server error",
   });
 };
+
+export default errorHandler;

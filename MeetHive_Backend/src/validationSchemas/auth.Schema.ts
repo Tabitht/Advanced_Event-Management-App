@@ -1,11 +1,11 @@
 /**
- * @module src/Validations/authValidation
- * @description Middleware for validating user registration and login data using Zod.
+ * @module src/validationSchemas/auth.Schema.ts
+ * @description Middleware for validation schemas on user registration and login data using Zod.
  */
 import * as z from "zod";
 
 // Validation schema for user registration
-const validateRegistration = z.object({
+const registrationSchema = z.object({
   name: z
     .string()
     .min(2, { error: "Name must be at least 2 characters long" })
@@ -28,9 +28,9 @@ const validateRegistration = z.object({
 });
 
 // Validation schema for user login
-const validatelogin = z.object({
+const loginSchema = z.object({
   email: z.email({ error: "Invalid email address" }),
   password: z.string().min(8).max(128),
 });
 
-export { validateRegistration, validatelogin };
+export { registrationSchema, loginSchema };

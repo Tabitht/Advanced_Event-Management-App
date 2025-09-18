@@ -1,5 +1,5 @@
 /**
- * @module src/Services/auth.service
+ * @module src/Services/auth.service.ts
  * @description Service layer for authentication-related operations.
  */
 import { PrismaClient } from "@prisma/client";
@@ -7,6 +7,7 @@ import { RefreshToken, User } from "@prisma/client";
 import { hashPassword, verifyPassword } from "../Utils/hash.js";
 import { generateAccessToken } from "../Utils/jwt.js";
 import { generateToken, hashToken } from "../Utils/crypto.js";
+import HttpError from "../Utils/HttpError.js";
 
 const prisma = new PrismaClient();
 
@@ -38,10 +39,7 @@ const registerUser = async (userData: {
   // Check if email for registration already exists
   const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) {
-    const error = new Error("Email already registered") as Error & {
-      status?: number;
-    };
-    error.status = 409;
+    const error = new HttpError(409, "Email already in use");
     throw error;
   }
 
@@ -77,17 +75,11 @@ const loginUser = async (
 ): Promise<Omit<User, "password">> => {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
-    const error = new Error("Invalid email or password") as Error & {
-      status?: number;
-    };
-    error.status = 404;
+    const error = new HttpError(404, "Invalid email or password");
     throw error;
   }
   if (!(await verifyPassword(user.password, password))) {
-    const error = new Error("Invalid email or password") as Error & {
-      status?: number;
-    };
-    error.status = 401;
+    const error = new HttpError(401, "Invalid email or password");
     throw error;
   }
   const { password: _password, ...safeUser } = { ...user };
@@ -145,10 +137,7 @@ const rotateRefreshToken = async (
     existingToken.expiresAt < new Date() ||
     existingToken.revoked
   ) {
-    const error = new Error("Invalid or expired refresh token") as Error & {
-      status?: number;
-    };
-    error.status = 401;
+    const error = new HttpError(401, "Invalid or expired refresh token");
     throw error;
   }
   await prisma.refreshToken.update({
