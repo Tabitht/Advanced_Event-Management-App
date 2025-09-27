@@ -1,11 +1,11 @@
 /**
- * @module src/Routes/auth.Routes.ts
+ * @module src/Routes/auth.routes.ts
  * @description Routes for authentication-related endpoints.
  */
 
 import { Router } from "express";
-import validate from "../../Middleware/validationMiddleware.js";
-import { authLimiter } from "../../Middleware/rateLimiter.js";
+import validate from "../../Middleware/validation.middleware.js";
+import { authLimiter } from "../../Middleware/rateLimiter.middleware.js";
 import {
   registrationSchema,
   loginSchema,
@@ -16,8 +16,8 @@ import {
   refreshController,
   logoutController,
   logoutAllController,
-} from "../../Controllers/v1/authController.js";
-import authenticate from "../../Middleware/authenticate.js";
+} from "../../Controllers/v1/auth.controllers.js";
+import authenticate from "../../Middleware/authenticate.middleware.js";
 
 const router = Router();
 

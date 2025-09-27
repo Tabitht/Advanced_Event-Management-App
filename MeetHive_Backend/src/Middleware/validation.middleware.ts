@@ -1,5 +1,5 @@
 /**
- * @module src/Middleware/validationMiddleware
+ * @module src/Middleware/validation.middleware.ts
  * @description Middleware to validate request bodies against Zod schemas.
  */
 import { Request, Response, NextFunction } from "express";

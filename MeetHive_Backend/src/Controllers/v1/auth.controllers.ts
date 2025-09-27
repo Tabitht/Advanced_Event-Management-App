@@ -12,9 +12,9 @@ import {
   revokeRawRefreshToken,
   revokeAllUserRefreshTokens,
   signAccessToken,
-} from "../../Services/auth.service.js";
+} from "../../Services/auth.services.js";
 import ENV from "../../config/env.js";
-import { AuthenticationRequest } from "../../Middleware/authenticate.js";
+import { AuthenticationRequest } from "../../types/user.types.js";
 import HttpError from "../../Utils/HttpError.js";
 
 /**

@@ -1,5 +1,5 @@
 /**
- * @module src/Middleware/rateLimiter.ts
+ * @module src/Middleware/rateLimiter.middleware.ts
  * @description Middleware for rate limiting requests.
  */
 

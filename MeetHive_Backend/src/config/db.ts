@@ -14,7 +14,7 @@ const pool = new Pool({
   host: process.env.DB_HOST || "db",
   database: process.env.DB_NAME || "mydb",
   password: process.env.DB_PASSWORD || "postgres",
-  port: Number(process.env.DB_PORT) || 5432,
+  port: Number(process.env.DB_PORT),
 });
 
 // Function to connect to the database and handle connection errors

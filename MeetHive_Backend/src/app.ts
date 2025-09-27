@@ -4,9 +4,9 @@ import helmet from "helmet";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
-import errorHandler from "./Middleware/errorHandler.js";
-import { generalLimiter } from "./Middleware/rateLimiter.js";
-import authRoutes from "./Routes/v1/auth.Routes.js";
+import errorHandler from "./Middleware/errorHandler.middleware.js";
+import { generalLimiter } from "./Middleware/rateLimiter.middleware.js";
+import authRoutes from "./Routes/v1/auth.routes.js";
 
 dotenv.config();
 

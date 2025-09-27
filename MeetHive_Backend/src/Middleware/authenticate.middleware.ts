@@ -1,14 +1,11 @@
 /**
- * @module src/Middleware/authMiddleware
+ * @module src/Middleware/auth.middleware.ts
  * @description Middleware for authenticating requests using JWT.
  */
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
 import { verifyAccessToken } from "../Utils/jwt.js";
 import HttpError from "../Utils/HttpError.js";
-
-interface AuthenticationRequest extends Request {
-  user?: { id: string; email: string; role?: string };
-}
+import { AuthenticationRequest } from "../types/user.types.js";
 
 const authenticate = (
   request: AuthenticationRequest,
@@ -37,4 +34,3 @@ const authenticate = (
 };
 
 export default authenticate;
-export type { AuthenticationRequest };

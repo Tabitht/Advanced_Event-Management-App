@@ -1,9 +1,9 @@
 /**
- * @module src/Middleware/authorize.ts
+ * @module src/Middleware/authorize.middleware.ts
  * @description Middleware for role-based authorization.
  */
 import { NextFunction, Response } from "express";
-import { AuthenticationRequest } from "./authenticate.js";
+import { AuthenticationRequest } from "../types/user.types.js";
 import HttpError from "../Utils/HttpError.js";
 
 // Middleware to check if the user has one of the allowed roles

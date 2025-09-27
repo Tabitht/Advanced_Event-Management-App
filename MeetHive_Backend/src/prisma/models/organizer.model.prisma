@@ -1,7 +1,7 @@
 model Organizer {
   id        String   @id @default(cuid())
   userId    String   @unique // FK to User (each user can have only ONE organizer profile)
-  name      String // Public name/brand
+  name      String    // Public name/brand
   slug      String   @unique // URL-friendly identifier e.g. "tagdev-events"
   bio       String? // Description
   logoUrl   String? // Logo
@@ -11,5 +11,5 @@ model Organizer {
 
   // Relations
   user User @relation(fields: [userId], references: [id]) //relation to the user table
-  //events       Event[]                                   // Organizer's events
+  events       Event[]                                   // Organizer's events
 }

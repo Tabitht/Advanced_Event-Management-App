@@ -1,0 +1,16 @@
+model Event {
+    id             String   @id @default(cuid())
+    organizerId    String   @unique // FK to Organizer (each event must have one organizer)
+    title          String
+    description    String?
+    category       String?
+    startAt       DateTime
+    endAt         DateTime
+    location       String
+    capacity       Int?
+    isPublished   Boolean?   @default(false)
+    createdAt     DateTime  @default(now())
+
+    //Relations
+    organizer Organizer @relation(fields: [organizerId], references: [id]) //relation to Organizer table
+}

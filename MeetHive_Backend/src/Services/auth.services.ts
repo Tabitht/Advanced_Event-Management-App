@@ -2,14 +2,13 @@
  * @module src/Services/auth.service.ts
  * @description Service layer for authentication-related operations.
  */
-import { PrismaClient } from "@prisma/client";
+import prisma from "../config/prisma.js";
 import { RefreshToken, User } from "@prisma/client";
 import { hashPassword, verifyPassword } from "../Utils/hash.js";
 import { generateAccessToken } from "../Utils/jwt.js";
 import { generateToken, hashToken } from "../Utils/crypto.js";
+import { UserData } from "../types/user.types.js";
 import HttpError from "../Utils/HttpError.js";
-
-const prisma = new PrismaClient();
 
 const REFRESH_TOKEN_EXPIRES_IN = Number(process.env.REFRESH_TOKEN_EXPIRES_IN);
 //const RESET_PASSWORD_TOKEN_EXPIRES_IN = Number(
@@ -19,22 +18,18 @@ const REFRESH_TOKEN_EXPIRES_IN = Number(process.env.REFRESH_TOKEN_EXPIRES_IN);
 /**
  * @function  registerUser
  * @description Registers a new user in the system.
- * @param {Object} userData - An object containing user details.
- * @param {string} userData.name - The name of the user.
- * @param {string} userData.email - The email of the user.
- * @param {string} userData.password - The password of the user.
- * @param {string} [userData.avatarUrl] - Optional avatar URL of the user.
- * @param {string} [userData.bio] - Optional bio of the user.
+ * @param {Object} user - An object containing user details.
+ * @param {string} user.name - The name of the user.
+ * @param {string} user.email - The email of the user.
+ * @param {string} user.password - The password of the user.
+ * @param {string} [user.avatarUrl] - Optional avatar URL of the user.
+ * @param {string} [user.bio] - Optional bio of the user.
  * @returns {Promise<Object>} The newly created user.
  */
-const registerUser = async (userData: {
-  name: string;
-  email: string;
-  password: string;
-  avatarUrl?: string;
-  bio?: string;
-}): Promise<Omit<User, "password">> => {
-  const { name, email, password, avatarUrl, bio } = userData;
+const registerUser = async (
+  data: UserData
+): Promise<Omit<User, "password">> => {
+  const { name, email, password, avatarUrl, bio } = data;
 
   // Check if email for registration already exists
   const existingUser = await prisma.user.findUnique({ where: { email } });

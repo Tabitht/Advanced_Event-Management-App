@@ -1,5 +1,5 @@
 /**
- * @module src/Middelware/errorHandler.ts
+ * @module src/Middelware/errorHandler.middelware.ts
  * @description central error handler for handling errors and their status code
  */
 import { Request, Response, NextFunction } from "express";
