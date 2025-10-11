@@ -9,17 +9,21 @@ import {
   loginUser,
   createRefreshToken,
   rotateRefreshToken,
-  revokeRawRefreshToken,
+  revokeRefreshToken,
   revokeAllUserRefreshTokens,
-  signAccessToken,
 } from "../../Services/auth.services.js";
-import ENV from "../../config/env.js";
+import { generateAccessToken } from "../../Utils/jwt.js";
+import { setAuthCookie, clearAuthCookie } from "../../Utils/cookies.js";
 import { AuthenticationRequest } from "../../types/user.types.js";
 import HttpError from "../../Utils/HttpError.js";
 
 /**
  * @controller registerController
  * @description Registers a new user, generates access + refresh tokens, and sends response.
+ * @param {Request} request - Express request object
+ * @param {Response} response - Express response object
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<Response>} JSON response with user data and tokens
  */
 export const registerController = async (
   request: Request,
@@ -34,16 +38,13 @@ export const registerController = async (
 
     // Create tokens
     const { refreshToken } = await createRefreshToken(user.id, ip, userAgent);
-    const accessToken = signAccessToken(user);
+    const accessToken = generateAccessToken(user);
 
-    // Set refresh token as HttpOnly cookie
-    response.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: ENV.NODE_ENV === "production",
-      sameSite: "strict",
-    });
+    // Sets the refresh token
+    setAuthCookie(response, refreshToken);
 
     return response.status(201).json({
+      success: true,
       message: "User registered successfully",
       user,
       accessToken,
@@ -57,6 +58,10 @@ export const registerController = async (
 /**
  * @controller loginController
  * @description Logs a user in by validating credentials and issuing new tokens.
+ * @param {Request} request - Express request object
+ * @param {Response} response - Express response object
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<Response>} JSON response with user data and tokens
  */
 export const loginController = async (
   request: Request,
@@ -71,15 +76,12 @@ export const loginController = async (
     const userAgent = request.get("user-agent");
 
     const { refreshToken } = await createRefreshToken(user.id, ip, userAgent);
-    const accessToken = signAccessToken(user);
+    const accessToken = generateAccessToken(user);
 
-    response.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: ENV.NODE_ENV === "production",
-      sameSite: "strict",
-    });
+    setAuthCookie(response, refreshToken);
 
     return response.status(200).json({
+      success: true,
       message: "Login successful",
       user,
       accessToken,
@@ -93,6 +95,10 @@ export const loginController = async (
 /**
  * @controller refreshController
  * @description Rotates refresh token and returns new access + refresh tokens.
+ * @param {Request} request - Express request object
+ * @param {Response} response - Express response object
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<Response>} JSON response with new tokens
  */
 export const refreshController = async (
   request: Request,
@@ -106,20 +112,17 @@ export const refreshController = async (
     const ip = request.ip;
     const userAgent = request.get("user-agent");
 
-    const { refreshToken, userId } = await rotateRefreshToken(
+    const { refreshToken, userId, role } = await rotateRefreshToken(
       oldToken,
       ip,
       userAgent
     );
-    const accessToken = signAccessToken({ id: userId, role: "USER" });
+    const accessToken = generateAccessToken({ id: userId, role: role });
 
-    response.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: ENV.NODE_ENV === "production",
-      sameSite: "strict",
-    });
+    setAuthCookie(response, refreshToken);
 
     return response.status(200).json({
+      success: true,
       message: "Token refreshed successfully",
       accessToken,
     });
@@ -132,6 +135,10 @@ export const refreshController = async (
 /**
  * @controller logoutController
  * @description Logs out the current user by revoking refresh token(s).
+ * @param {Request} request - Express request object
+ * @param {Response} response - Express response object
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<Response>} JSON response message
  */
 export const logoutController = async (
   request: Request,
@@ -142,16 +149,15 @@ export const logoutController = async (
     const rawToken = request.cookies.refreshToken || request.body.refreshToken;
     if (!rawToken) throw new HttpError(400, "Refresh token missing");
 
-    await revokeRawRefreshToken(rawToken);
+    await revokeRefreshToken(rawToken);
 
     // Clear cookie
-    response.clearCookie("refreshToken", {
-      httpOnly: true,
-      secure: ENV.NODE_ENV === "production",
-      sameSite: "strict",
-    });
+    clearAuthCookie(response);
 
-    return response.status(200).json({ message: "Logged out successfully" });
+    return response.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
   } catch (error) {
     next(error);
     return;
@@ -161,6 +167,10 @@ export const logoutController = async (
 /**
  * @controller logoutAllController
  * @description Logs out user from all devices by revoking all tokens.
+ * @param {Request} request - Express request object
+ * @param {Response} response - Express response object
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<Response>} JSON response message
  */
 export const logoutAllController = async (
   request: Request,
@@ -169,14 +179,16 @@ export const logoutAllController = async (
 ) => {
   try {
     const userId = (request as AuthenticationRequest).user?.id;
-    if (!userId) throw new HttpError(401, "Not authenticated");
-
+    if (!userId) {
+      throw new HttpError(401, "Not authenticated");
+    }
     await revokeAllUserRefreshTokens(userId);
     response.clearCookie("refreshToken");
 
-    return response
-      .status(200)
-      .json({ message: "Logged out from all devices" });
+    return response.status(200).json({
+      success: true,
+      message: "Logged out from all devices",
+    });
   } catch (error) {
     next(error);
     return;

@@ -4,9 +4,12 @@
  */
 import prisma from "../config/prisma.js";
 import { RefreshToken, User } from "@prisma/client";
-import { hashPassword, verifyPassword } from "../Utils/hash.js";
-import { generateAccessToken } from "../Utils/jwt.js";
-import { generateToken, hashToken } from "../Utils/crypto.js";
+import { hashPassword, verifyPassword } from "../Utils/passwordHash.js";
+import {
+  generateRefreshToken,
+  hashRefreshToken,
+  validateExistingToken,
+} from "../Utils/refreshTokens.js";
 import { UserData } from "../types/user.types.js";
 import HttpError from "../Utils/HttpError.js";
 
@@ -18,21 +21,18 @@ const REFRESH_TOKEN_EXPIRES_IN = Number(process.env.REFRESH_TOKEN_EXPIRES_IN);
 /**
  * @function  registerUser
  * @description Registers a new user in the system.
- * @param {Object} user - An object containing user details.
- * @param {string} user.name - The name of the user.
- * @param {string} user.email - The email of the user.
- * @param {string} user.password - The password of the user.
- * @param {string} [user.avatarUrl] - Optional avatar URL of the user.
- * @param {string} [user.bio] - Optional bio of the user.
+ * @param {Object} data - An object containing user details.
  * @returns {Promise<Object>} The newly created user.
  */
 const registerUser = async (
   data: UserData
-): Promise<Omit<User, "password">> => {
+): Promise<Omit<User, "hashedPassword">> => {
   const { name, email, password, avatarUrl, bio } = data;
 
   // Check if email for registration already exists
-  const existingUser = await prisma.user.findUnique({ where: { email } });
+  const existingUser = await prisma.user.findUnique({
+    where: { email: email.toLowerCase() },
+  });
   if (existingUser) {
     const error = new HttpError(409, "Email already in use");
     throw error;
@@ -45,15 +45,23 @@ const registerUser = async (
     data: {
       name,
       email,
-      password: hashedPassword,
+      hashedPassword,
       avatarUrl: avatarUrl ?? null,
       bio: bio ?? null,
     },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      avatarUrl: true,
+      bio: true,
+      role: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
 
-  //remove password from data to be returned
-  const { password: _password, ...safeUser } = { ...newUser };
-  return safeUser;
+  return newUser;
 };
 
 /**
@@ -67,17 +75,19 @@ const registerUser = async (
 const loginUser = async (
   email: string,
   password: string
-): Promise<Omit<User, "password">> => {
-  const user = await prisma.user.findUnique({ where: { email } });
+): Promise<Omit<User, "hashedPassword">> => {
+  const user = await prisma.user.findUnique({
+    where: { email: email.toLocaleLowerCase() },
+  });
   if (!user) {
     const error = new HttpError(404, "Invalid email or password");
     throw error;
   }
-  if (!(await verifyPassword(user.password, password))) {
+  if (!(await verifyPassword(user.hashedPassword, password))) {
     const error = new HttpError(401, "Invalid email or password");
     throw error;
   }
-  const { password: _password, ...safeUser } = { ...user };
+  const { hashedPassword: _password, ...safeUser } = { ...user };
   return safeUser;
 };
 
@@ -87,16 +97,17 @@ const loginUser = async (
  * @param {string} userId - The ID of the user.
  * @param {string} [ip] - Optional IP address of the user.
  * @param {string} [userAgent] - Optional user agent string of the user.
- * @returns {Promise<{db: Object, refreshToken: string}>} The database record and raw refresh token.
+ * @returns {Promise<{refreshToken: string}>} The raw refresh token.
  */
 const createRefreshToken = async (
   userId: string,
   ip?: string,
   userAgent?: string
 ): Promise<{ db: RefreshToken; refreshToken: string }> => {
-  const refreshToken = generateToken(64);
-  const hashed = await hashToken(refreshToken);
+  const refreshToken = generateRefreshToken(64);
+  const hashed = await hashRefreshToken(refreshToken);
   const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRES_IN * 1000);
+
   const db = await prisma.refreshToken.create({
     data: {
       userId,
@@ -122,56 +133,54 @@ const rotateRefreshToken = async (
   oldToken: string,
   ip?: string,
   userAgent?: string
-): Promise<{ db: object; refreshToken: string; userId: string }> => {
-  const hashedOldToken = await hashToken(oldToken);
-  const existingToken = await prisma.refreshToken.findFirst({
-    where: { hashedToken: hashedOldToken },
-  });
-  if (
-    !existingToken ||
-    existingToken.expiresAt < new Date() ||
-    existingToken.revoked
-  ) {
-    const error = new HttpError(401, "Invalid or expired refresh token");
-    throw error;
-  }
-  await prisma.refreshToken.update({
-    where: { id: existingToken.id },
-    data: { revoked: true },
-  });
+): Promise<{
+  db: RefreshToken;
+  refreshToken: string;
+  userId: string;
+  role: string;
+}> => {
+  const hashedOldToken = hashRefreshToken(oldToken);
+  const existingToken = await validateExistingToken(hashedOldToken);
+  const { user } = existingToken;
+  const newToken = generateRefreshToken(64);
+  const hashedNewToken = hashRefreshToken(newToken);
 
-  const newTokenData = await createRefreshToken(
-    existingToken.userId,
-    ip,
-    userAgent
+  const { db, refreshToken, userId, role } = await prisma.$transaction(
+    async (transaction) => {
+      await transaction.refreshToken.update({
+        where: { id: existingToken.id },
+        data: { revoked: true, replacedBy: hashedNewToken },
+      });
+
+      const { db, refreshToken } = await createRefreshToken(
+        existingToken.userId,
+        ip,
+        userAgent
+      );
+
+      return {
+        db,
+        refreshToken,
+        userId: existingToken.userId,
+        role: user.role,
+      };
+    }
   );
-  await prisma.refreshToken.update({
-    where: { id: newTokenData.db.id },
-    data: { replacedBy: newTokenData.db.id },
-  });
-  return { ...newTokenData, userId: existingToken.userId };
+
+  return { db, refreshToken, userId, role };
 };
 
 /**
- * @function revokeHashedRefreshToken
- * @description Revokes a refresh token by its hashed value.
- * @param {string} hashedToken - The hashed refresh token to be revoked.
+ * @function revokeRefreshToken
+ * @description Revokes a refresh token by its raw value.
+ * @param {string} rawToken - The raw refresh token to be revoked.
  */
-const revokeHashedRefreshToken = async (hashedToken: string) => {
+const revokeRefreshToken = async (rawToken: string) => {
+  const hashedToken = await hashRefreshToken(rawToken);
   await prisma.refreshToken.updateMany({
     where: { hashedToken, revoked: false },
     data: { revoked: true },
   });
-};
-
-/**
- * @function revokeRawRefreshToken
- * @description Revokes a refresh token by its raw value.
- * @param {string} rawToken - The raw refresh token to be revoked.
- */
-const revokeRawRefreshToken = async (rawToken: string) => {
-  const hashedToken = await hashToken(rawToken);
-  await revokeHashedRefreshToken(hashedToken);
 };
 
 /**
@@ -186,24 +195,11 @@ const revokeAllUserRefreshTokens = async (userId: string) => {
   });
 };
 
-/**
- * @function signAccessToken
- * @description Generates a JWT access token for a user.
- * @param {Object} user - An object containing user details.
- * @param {string} user.id - The ID of the user.
- * @param {string} user.role - The role of the user.
- * @returns {string} The generated JWT access token.
- */
-const signAccessToken = (user: { id: string; role: string }): string => {
-  return generateAccessToken({ userId: user.id, role: user.role });
-};
-
 export {
   registerUser,
   loginUser,
   createRefreshToken,
   rotateRefreshToken,
-  revokeRawRefreshToken,
+  revokeRefreshToken,
   revokeAllUserRefreshTokens,
-  signAccessToken,
 };

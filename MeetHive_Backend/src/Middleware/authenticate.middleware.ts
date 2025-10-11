@@ -7,6 +7,14 @@ import { verifyAccessToken } from "../Utils/jwt.js";
 import HttpError from "../Utils/HttpError.js";
 import { AuthenticationRequest } from "../types/user.types.js";
 
+/**
+ * @function authenticate
+ * @description Middleware to authenticate requests using JWT access tokens.
+ * @param {AuthenticationRequest} request - Express request object with optional user property
+ * @param {Response} _response - Express response object (not used)
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {void}
+ */
 const authenticate = (
   request: AuthenticationRequest,
   _response: Response,

@@ -1,6 +1,7 @@
 import prisma from "../config/prisma.js";
 import { EventData, UpdateEventData } from "../types/event.types.js";
 import { Event } from "@prisma/client";
+import HttpError from "../Utils/HttpError.js";
 
 const createEvent = async (
   organizerId: string,
@@ -34,4 +35,14 @@ const deleteEvent = async (eventId: string): Promise<void> => {
   });
 };
 
-export { createEvent, updateEvent, deleteEvent };
+const getSingleEvent = async (eventId: string): Promise<Event> => {
+  const eventData = await prisma.event.findUnique({
+    where: { id: eventId },
+  });
+  if (!eventData) {
+    throw new HttpError(404, "Event not found");
+  }
+  return eventData;
+};
+
+export { createEvent, updateEvent, deleteEvent, getSingleEvent };

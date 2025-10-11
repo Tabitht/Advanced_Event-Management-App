@@ -6,7 +6,12 @@ import { NextFunction, Response } from "express";
 import { AuthenticationRequest } from "../types/user.types.js";
 import HttpError from "../Utils/HttpError.js";
 
-// Middleware to check if the user has one of the allowed roles
+/**
+ * @function authorize
+ * @description Middleware to authorize users based on their roles.
+ * @param {...string} allowedRoles - Roles that are permitted to access the route (e.g., 'admin', 'user')
+ * @returns {Function} Middleware function to check user roles
+ */
 const authorize =
   (...allowedRoles: string[]) =>
   (request: AuthenticationRequest, _response: Response, next: NextFunction) => {

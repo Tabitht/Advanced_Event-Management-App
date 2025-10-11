@@ -10,15 +10,25 @@ if (!JWT_SECRET) {
 }
 
 const ACCESS_TOKEN_EXPIRES_IN = Number(process.env.ACCESS_TOKEN_EXPIRES_IN);
+const JWT_ISSUER = process.env.JWT_ISSUER;
+const JWT_AUDIENCE = process.env.JWT_AUDIENCE;
 
 /**
  * @function generateAccessToken
- * @description Generates a JWT for the given payload.
- * @param {object} payload - The payload to be included in the JWT.
- * @returns {string} The generated JWT.
+ * @description Generates a JWT access token for a user
+ * @param {Object} user - The user object containing the id and role
+ * @param {string} user.id - The user's unique ID
+ * @param {string} user.role - The user's role.
+ * @returns {string} The signed JWT token.
  */
-const generateAccessToken = (payload: object): string => {
+const generateAccessToken = (user: { id: string; role: string }): string => {
+  const payload = {
+    sub: user.id,
+    role: user.role,
+  };
   const options: SignOptions = {
+    issuer: JWT_ISSUER,
+    audience: JWT_AUDIENCE,
     expiresIn: ACCESS_TOKEN_EXPIRES_IN,
   };
   return jwt.sign(payload, JWT_SECRET, options);
@@ -32,7 +42,11 @@ const generateAccessToken = (payload: object): string => {
  * @throws Will throw an error if the token is missing or invalid.
  */
 const verifyAccessToken = (token: string): object | string => {
-  return jwt.verify(token, JWT_SECRET);
+  const decoded = jwt.verify(token, JWT_SECRET, {
+    issuer: JWT_ISSUER,
+    audience: JWT_AUDIENCE,
+  });
+  return decoded;
 };
 
 export { generateAccessToken, verifyAccessToken };

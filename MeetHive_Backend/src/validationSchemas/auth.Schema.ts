@@ -4,8 +4,16 @@
  */
 import * as z from "zod";
 
-// Validation schema for user registration
-const registrationSchema = z.object({
+/**
+ * @description Validation schema for user registration
+ * @type {Object} RegistrationSchema
+ * @property {string} name - User's full name (min 2 characters, max 100 characters)
+ * @property {string} email - User's email address (must be valid format)
+ * @property {string} password - User's password (min 8 characters, must include at least one number and one special character)
+ * @property {string} [avatarUrl] - Optional URL for user's avatar image
+ * @property {string} [bio] - Optional short bio (max 500 characters)
+ */
+const registrationSchema: object = z.object({
   name: z
     .string()
     .min(2, { error: "Name must be at least 2 characters long" })
@@ -27,8 +35,13 @@ const registrationSchema = z.object({
     .optional(),
 });
 
-// Validation schema for user login
-const loginSchema = z.object({
+/**
+ * @description Validation schema for user login
+ * @type {Object} LoginSchema
+ * @property {string} email - User's email address (must be valid format)
+ * @property {string} password - User's password (min 8 characters)
+ */
+const loginSchema: object = z.object({
   email: z.email({ error: "Invalid email address" }),
   password: z.string().min(8).max(128),
 });

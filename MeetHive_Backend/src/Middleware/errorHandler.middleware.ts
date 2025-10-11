@@ -5,7 +5,15 @@
 import { Request, Response, NextFunction } from "express";
 import HttpError from "../Utils/HttpError.js";
 
-// custom middelware error handler
+/**
+ * @function errorHandler
+ * @description central error handler for handling errors and their status code
+ * @param {Object} error - the error object thrown from any part of the application
+ * @param {Object} _request - the express request object
+ * @param {Object} response - the express response object
+ * @param {Function} _next - the next middleware function in the express middleware chain
+ * @returns {Object} the response object with the error message and status code
+ */
 const errorHandler = (
   error: HttpError,
   _request: Request,

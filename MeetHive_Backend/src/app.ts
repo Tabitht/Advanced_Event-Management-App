@@ -1,4 +1,4 @@
-import express, { Application } from "express";
+import express, { Application, response } from "express";
 import morgan from "morgan";
 import helmet from "helmet";
 import cors from "cors";
@@ -13,6 +13,17 @@ dotenv.config();
 const app: Application = express();
 
 app.use(helmet());
+
+app.use((request, response, next) => {
+  if (
+    request.path.startsWith("/api/v1/auth") ||
+    request.path.startsWith("/api/v1/user")
+  ) {
+    response.setHeader("Cache-Control", "no-store");
+  }
+  next();
+});
+
 app.use(morgan("dev"));
 app.use(cors());
 app.use(cookieParser());
