@@ -9,8 +9,9 @@ model Event {
     location       String
     capacity       Int?
     isPublished    Boolean?     @default(false)
+    isArchived     Boolean?     @default(false)
     createdAt      DateTime     @default(now())
 
     //Relations
-    organizer      Organizer    @relation(fields: [organizerId], references: [id]) //relation to Organizer table
+    organizer      Organizer    @relation(fields: [organizerId], references: [id], onDelete: Cascade) //relation to Organizer table
 }

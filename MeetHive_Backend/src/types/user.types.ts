@@ -13,6 +13,5 @@ interface UserData {
   email: string;
   password: string;
   avatarUrl?: string;
-  bio?: string;
 }
 export type { AuthenticationRequest, UserData };

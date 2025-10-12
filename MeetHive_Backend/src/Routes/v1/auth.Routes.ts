@@ -13,6 +13,7 @@ import {
 import {
   registerController,
   loginController,
+  verifyEmailController,
   refreshController,
   logoutController,
   logoutAllController,
@@ -32,6 +33,13 @@ router.post(
   validate(registrationSchema),
   registerController
 );
+
+/**
+ * @route POST /api/v1/auth/verify-email
+ * @description verifies a registered user email account
+ * @access Public
+ */
+router.post("/verify-email", authLimiter, verifyEmailController);
 
 /**
  * @route POST /api/v1/auth/login

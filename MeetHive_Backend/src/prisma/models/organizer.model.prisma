@@ -10,7 +10,7 @@ model Organizer {
   updatedAt     DateTime    @updatedAt
 
   // Relations
-  user          User @relation(fields: [userId], references: [id]) //relation to the user table
+  user          User @relation(fields: [userId], references: [id], onDelete: Cascade) //relation to the user table
   event         Event[] //relation to Event table
   subscribers   Subscription[]     
 }

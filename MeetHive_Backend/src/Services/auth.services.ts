@@ -6,28 +6,30 @@ import prisma from "../config/prisma.js";
 import { RefreshToken, User } from "@prisma/client";
 import { hashPassword, verifyPassword } from "../Utils/passwordHash.js";
 import {
-  generateRefreshToken,
-  hashRefreshToken,
+  generateToken,
+  hashToken,
   validateExistingToken,
 } from "../Utils/refreshTokens.js";
 import { UserData } from "../types/user.types.js";
 import HttpError from "../Utils/HttpError.js";
+import { sendVerificationEmail } from "../Utils/emails.js";
 
 const REFRESH_TOKEN_EXPIRES_IN = Number(process.env.REFRESH_TOKEN_EXPIRES_IN);
+const VERIFICATION_TOKEN_EXPIRES_IN = Number(
+  process.env.VERIFICATION_TOKEN_EXPIRES_AT
+);
 //const RESET_PASSWORD_TOKEN_EXPIRES_IN = Number(
 //process.env.RESET_PASSWORD_TOKEN_EXPIRES_IN
 //);
 
 /**
  * @function  registerUser
- * @description Registers a new user in the system.
+ * @description Registers a new user in the system and sends their verification token
  * @param {Object} data - An object containing user details.
- * @returns {Promise<Object>} The newly created user.
+ * @returns {Promise<Object>} Success message and status.
  */
-const registerUser = async (
-  data: UserData
-): Promise<Omit<User, "hashedPassword">> => {
-  const { name, email, password, avatarUrl, bio } = data;
+const registerUser = async (data: UserData): Promise<object> => {
+  const { name, email, password, avatarUrl } = data;
 
   // Check if email for registration already exists
   const existingUser = await prisma.user.findUnique({
@@ -47,21 +49,61 @@ const registerUser = async (
       email,
       hashedPassword,
       avatarUrl: avatarUrl ?? null,
-      bio: bio ?? null,
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      avatarUrl: true,
-      bio: true,
-      role: true,
-      createdAt: true,
-      updatedAt: true,
     },
   });
 
-  return newUser;
+  const verificationToken = generateToken(32);
+  const hashedToken = hashToken(verificationToken);
+  const expiresAt = new Date(Date.now() + VERIFICATION_TOKEN_EXPIRES_IN * 1000);
+
+  await prisma.verificationToken.create({
+    data: {
+      hashedToken,
+      userId: newUser.id,
+      expiresAt,
+    },
+  });
+
+  await sendVerificationEmail(newUser.email, verificationToken);
+  return {
+    success: true,
+    message:
+      "Registration successful, please verify your email using the link sent to your email",
+  };
+};
+
+/**
+ * @function verifyUserEmail
+ * @description verifies a user's email using a verification token
+ * @param {string} token - the verification token sent to user's email
+ * @returns {Promise<Object>} success message and status
+ * @throws Will throw an error if the token is invalid or expired.
+ */
+const verifyUserEmail = async (token: string): Promise<object> => {
+  const hashedToken = hashToken(token);
+  const tokenRecord = await prisma.verificationToken.findUnique({
+    where: { hashedToken },
+    include: { user: true },
+  });
+  if (!tokenRecord || tokenRecord.used || new Date() > tokenRecord.expiresAt) {
+    throw new HttpError(400, "Invalid or expired verification token");
+  }
+
+  await prisma.$transaction(async (transaction) => {
+    await transaction.user.update({
+      where: { id: tokenRecord.userId },
+      data: { isEmailVerified: true },
+    });
+    await transaction.verificationToken.update({
+      where: { id: tokenRecord.id },
+      data: { used: true },
+    });
+  });
+
+  return {
+    success: true,
+    message: "Email verified successfully",
+  };
 };
 
 /**
@@ -87,6 +129,13 @@ const loginUser = async (
     const error = new HttpError(401, "Invalid email or password");
     throw error;
   }
+  if (!user.isEmailVerified) {
+    const error = new HttpError(
+      403,
+      "Please verify your email before logging in"
+    );
+    throw error;
+  }
   const { hashedPassword: _password, ...safeUser } = { ...user };
   return safeUser;
 };
@@ -104,8 +153,8 @@ const createRefreshToken = async (
   ip?: string,
   userAgent?: string
 ): Promise<{ db: RefreshToken; refreshToken: string }> => {
-  const refreshToken = generateRefreshToken(64);
-  const hashed = await hashRefreshToken(refreshToken);
+  const refreshToken = generateToken(64);
+  const hashed = await hashToken(refreshToken);
   const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRES_IN * 1000);
 
   const db = await prisma.refreshToken.create({
@@ -139,11 +188,11 @@ const rotateRefreshToken = async (
   userId: string;
   role: string;
 }> => {
-  const hashedOldToken = hashRefreshToken(oldToken);
+  const hashedOldToken = hashToken(oldToken);
   const existingToken = await validateExistingToken(hashedOldToken);
   const { user } = existingToken;
-  const newToken = generateRefreshToken(64);
-  const hashedNewToken = hashRefreshToken(newToken);
+  const newToken = generateToken(64);
+  const hashedNewToken = hashToken(newToken);
 
   const { db, refreshToken, userId, role } = await prisma.$transaction(
     async (transaction) => {
@@ -176,7 +225,7 @@ const rotateRefreshToken = async (
  * @param {string} rawToken - The raw refresh token to be revoked.
  */
 const revokeRefreshToken = async (rawToken: string) => {
-  const hashedToken = await hashRefreshToken(rawToken);
+  const hashedToken = await hashToken(rawToken);
   await prisma.refreshToken.updateMany({
     where: { hashedToken, revoked: false },
     data: { revoked: true },
@@ -197,6 +246,7 @@ const revokeAllUserRefreshTokens = async (userId: string) => {
 
 export {
   registerUser,
+  verifyUserEmail,
   loginUser,
   createRefreshToken,
   rotateRefreshToken,

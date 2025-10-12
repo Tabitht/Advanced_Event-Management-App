@@ -2,9 +2,10 @@ model Subscription {
     id              String       @id @default(cuid())
     userId          String       @unique   // foreign key to userId
     organizerId     String       @unique   // foreign key to organizerId
+    isActive        Boolean      @default(true)
     createdAt       DateTime     @default(now())
 
     //Relations
-    user User @relation(fields: [userId], references: [id])
-    organizer Organizer @relation(fields: [organizerId], references: [id])
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    organizer Organizer @relation(fields: [organizerId], references: [id], onDelete: SetNull)
 }

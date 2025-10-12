@@ -5,7 +5,6 @@
 import crypto from "crypto";
 import prisma from "../config/prisma.js";
 import { Prisma } from "@prisma/client";
-import { RefreshToken } from "@prisma/client";
 import HttpError from "./HttpError.js";
 
 /**
@@ -14,7 +13,7 @@ import HttpError from "./HttpError.js";
  * @param {number} length - The length of the token in bytes (default is 64).
  * @returns {string} A hexadecimal string representation of the token.
  */
-const generateRefreshToken = (length: number = 64): string => {
+const generateToken = (length: number = 64): string => {
   return crypto.randomBytes(length).toString("hex");
 };
 
@@ -24,7 +23,7 @@ const generateRefreshToken = (length: number = 64): string => {
  * @param {string} token - The token to be hashed.
  * @returns {string} A hexadecimal string representation of the hashed token.
  */
-const hashRefreshToken = (token: string): string => {
+const hashToken = (token: string): string => {
   return crypto.createHash("sha256").update(token).digest("hex");
 };
 
@@ -53,6 +52,7 @@ const validateExistingToken = async (
       },
     },
   });
+
   if (!token) {
     throw new HttpError(401, "Token not found");
   }
@@ -62,7 +62,12 @@ const validateExistingToken = async (
   if (new Date() > new Date(token.expiresAt.getTime() + gracePeriod)) {
     throw new HttpError(401, "Token expired");
   }
+
+  const user = await prisma.user.findUnique({ where: { id: token.userId } });
+  if (!user?.isEmailVerified) {
+    throw new HttpError(403, "Account not verified");
+  }
   return token;
 };
 
-export { generateRefreshToken, hashRefreshToken, validateExistingToken };
+export { generateToken, hashToken, validateExistingToken };

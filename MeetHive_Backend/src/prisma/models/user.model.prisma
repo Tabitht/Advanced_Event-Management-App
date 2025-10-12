@@ -1,19 +1,22 @@
 model User {
-  id              String         @id @default(cuid())
-  name            String?
-  email           String         @unique
-  hashedPassword  String
-  role            Role           @default(USER) //Role e.g User, Organizer or Admin etc
-  avatarUrl       String? //Url to profile picture
-  bio             String? //Description
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  id                  String         @id @default(cuid())
+  name                String?
+  email               String         @unique
+  hashedPassword      String
+  role                Role           @default(USER) //Role e.g User, Organizer or Admin etc
+  avatarUrl           String?                       //Url to profile picture
+  isEmailVerified     Boolean        @default(false)
+  isDeleted           Boolean        @default(false)
+  deletedAt           DateTime?      
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
 
   //Relations
-  refreshTokens   RefreshToken[]
-  resetTokens     ResetToken[]
-  subscriptions   Subscription[]
-  organizer       Organizer?          // users that are organizers as well
+  refreshTokens       RefreshToken[]
+  resetTokens         ResetToken[]
+  verificationTokens  VerificationToken[]
+  subscriptions       Subscription[]
+  organizer           Organizer?          // users that are organizers as well
 }
 
 /// Enum for roles

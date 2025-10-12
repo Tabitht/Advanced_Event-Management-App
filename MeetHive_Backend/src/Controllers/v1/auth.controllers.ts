@@ -6,6 +6,7 @@
 import { Request, Response, NextFunction } from "express";
 import {
   registerUser,
+  verifyUserEmail,
   loginUser,
   createRefreshToken,
   rotateRefreshToken,
@@ -19,36 +20,44 @@ import HttpError from "../../Utils/HttpError.js";
 
 /**
  * @controller registerController
- * @description Registers a new user, generates access + refresh tokens, and sends response.
+ * @description Registers a new user and sends their verification token.
  * @param {Request} request - Express request object
  * @param {Response} response - Express response object
  * @param {NextFunction} next - Express next middleware function
  * @returns {Promise<Response>} JSON response with user data and tokens
  */
-export const registerController = async (
+const registerController = async (
   request: Request,
   response: Response,
   next: NextFunction
 ) => {
   try {
     const user = await registerUser(request.body);
-    // IP & User Agent for token tracking
-    const ip = request.ip;
-    const userAgent = request.get("user-agent");
 
-    // Create tokens
-    const { refreshToken } = await createRefreshToken(user.id, ip, userAgent);
-    const accessToken = generateAccessToken(user);
+    return response.status(201).json({ user });
+  } catch (error) {
+    next(error);
+    return;
+  }
+};
 
-    // Sets the refresh token
-    setAuthCookie(response, refreshToken);
+/**
+ * @controller verifyEmailController
+ * @description Verifies the registered user email
+ * @param {Request} request - Express request object
+ * @param {Response} response - Express response object
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<Response>} JSON response with user data and tokens
+ */
+const verifyEmailController = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const token = await verifyUserEmail(request.body);
 
-    return response.status(201).json({
-      success: true,
-      message: "User registered successfully",
-      user,
-      accessToken,
-    });
+    return response.status(201).json({ token });
   } catch (error) {
     next(error);
     return;
@@ -63,7 +72,7 @@ export const registerController = async (
  * @param {NextFunction} next - Express next middleware function
  * @returns {Promise<Response>} JSON response with user data and tokens
  */
-export const loginController = async (
+const loginController = async (
   request: Request,
   response: Response,
   next: NextFunction
@@ -100,7 +109,7 @@ export const loginController = async (
  * @param {NextFunction} next - Express next middleware function
  * @returns {Promise<Response>} JSON response with new tokens
  */
-export const refreshController = async (
+const refreshController = async (
   request: Request,
   response: Response,
   next: NextFunction
@@ -140,7 +149,7 @@ export const refreshController = async (
  * @param {NextFunction} next - Express next middleware function
  * @returns {Promise<Response>} JSON response message
  */
-export const logoutController = async (
+const logoutController = async (
   request: Request,
   response: Response,
   next: NextFunction
@@ -172,7 +181,7 @@ export const logoutController = async (
  * @param {NextFunction} next - Express next middleware function
  * @returns {Promise<Response>} JSON response message
  */
-export const logoutAllController = async (
+const logoutAllController = async (
   request: Request,
   response: Response,
   next: NextFunction
@@ -193,4 +202,13 @@ export const logoutAllController = async (
     next(error);
     return;
   }
+};
+
+export {
+  registerController,
+  verifyEmailController,
+  loginController,
+  refreshController,
+  logoutController,
+  logoutAllController,
 };
