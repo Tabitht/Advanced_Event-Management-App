@@ -29,10 +29,9 @@ const updateEvent = async (
   return updatedEvent;
 };
 
-const deleteEvent = async (eventId: string): Promise<void> => {
-  await prisma.event.delete({
-    where: { id: eventId },
-  });
+const getAllEvent = async (): Promise<Array<Event>> => {
+  const events = await prisma.event.findMany();
+  return events;
 };
 
 const getSingleEvent = async (eventId: string): Promise<Event> => {
@@ -45,4 +44,28 @@ const getSingleEvent = async (eventId: string): Promise<Event> => {
   return eventData;
 };
 
-export { createEvent, updateEvent, deleteEvent, getSingleEvent };
+const publishEvent = async (eventId: string): Promise<void> => {
+  await prisma.event.update({
+    where: { id: eventId },
+    data: {
+      isPublished: true,
+    },
+  });
+};
+const softDeleteEvent = async (eventId: string): Promise<void> => {
+  await prisma.event.update({
+    where: { id: eventId },
+    data: {
+      isArchived: true,
+    },
+  });
+};
+
+export {
+  createEvent,
+  updateEvent,
+  getAllEvent,
+  publishEvent,
+  softDeleteEvent,
+  getSingleEvent,
+};

@@ -21,6 +21,12 @@ const createOrganizer = async (
   userId: string,
   data: OrganizerData
 ): Promise<Organizer> => {
+  const existingOrganizer = await prisma.organizer.findUnique({
+    where: { userId },
+  });
+  if (existingOrganizer) {
+    throw new HttpError(409, "Organizer account already exist for User");
+  }
   return prisma.$transaction(async (transaction) => {
     const organizer = await transaction.organizer.create({
       data: {
@@ -66,7 +72,7 @@ const updateOrganizer = async (
 
 /**
  * @function getSingleOrganizer
- * @description fetches a particular organizer profile
+ * @description fetches a particular organizer profile with their upcoming events
  * @param {string} organizer_id - the id of the organizer profile to get
  * @returns {Promise<object>} the gotten organizer profile
  */
@@ -79,11 +85,14 @@ const getSingleOrganizer = async (organizer_id: string): Promise<Organizer> => {
           startAt: {
             gte: new Date(),
           },
+          isArchived: false,
           isPublished: true,
         },
         select: {
           id: true,
           title: true,
+          description: true,
+          category: true,
           startAt: true,
           endAt: true,
           location: true,

@@ -35,11 +35,11 @@ router.post(
 );
 
 /**
- * @route POST /api/v1/auth/verify-email
+ * @route POST /api/v1/auth/verifyEmail
  * @description verifies a registered user email account
  * @access Public
  */
-router.post("/verify-email", authLimiter, verifyEmailController);
+router.post("/verifyEmail", authLimiter, verifyEmailController);
 
 /**
  * @route POST /api/v1/auth/login
@@ -49,11 +49,11 @@ router.post("/verify-email", authLimiter, verifyEmailController);
 router.post("/login", authLimiter, validate(loginSchema), loginController);
 
 /**
- * @route POST /api/v1/auth/refresh
+ * @route POST /api/v1/auth/refreshToken
  * @description Refresh access token using refresh token
  * @access Public
  */
-router.post("/refresh", refreshController);
+router.post("/refreshToken", refreshController);
 
 /**
  * @route POST /api/v1/auth/logout
