@@ -3,7 +3,7 @@
  * @description holds the crud operation and logic for the organizer feature
  */
 import prisma from "../config/prisma.js";
-import { Organizer, Role } from "@prisma/client";
+import { Organizer, Role, Event } from "@prisma/client";
 import {
   OrganizerData,
   UpdateOrganizerData,
@@ -20,28 +20,38 @@ import HttpError from "../Utils/HttpError.js";
 const createOrganizer = async (
   userId: string,
   data: OrganizerData
-): Promise<Organizer> => {
+): Promise<{ success: boolean; message: string; data: Organizer }> => {
   const existingOrganizer = await prisma.organizer.findUnique({
     where: { userId },
   });
   if (existingOrganizer) {
     throw new HttpError(409, "Organizer account already exist for User");
   }
-  return prisma.$transaction(async (transaction) => {
-    const organizer = await transaction.organizer.create({
-      data: {
-        userId,
-        ...data,
-      },
-    });
+  try {
+    const organizerData = await prisma.$transaction(async (transaction) => {
+      const organizer = await transaction.organizer.create({
+        data: {
+          userId,
+          ...data,
+        },
+      });
 
-    await transaction.user.update({
-      where: { id: userId },
-      data: { role: Role.ORGANIZER },
-    });
+      await transaction.user.update({
+        where: { id: userId },
+        data: { role: Role.ORGANIZER },
+      });
 
-    return organizer;
-  });
+      return organizer;
+    });
+    return {
+      success: true,
+      message: "Organizer profile created successfully",
+      data: organizerData,
+    };
+  } catch (error) {
+    console.log("Error creating organizer profile:", error);
+    throw new HttpError(500, "Error creating organizer Profile");
+  }
 };
 
 /**
@@ -49,12 +59,16 @@ const createOrganizer = async (
  * @description updates the organizer profile details
  * @param {string} organizerId - the id of the organizer profile to update
  * @param {Object} data - the new data details to update e.g data.name, data.bio etc
- * @returns {Promise<object>} the updated organizer
+ * @returns {Promise<success: boolean; message: string; data: Organizer>} the updated organizer, success status and message
  */
 const updateOrganizer = async (
   organizerId: string,
   data: UpdateOrganizerData
-): Promise<Organizer> => {
+): Promise<{
+  success: boolean;
+  message: string;
+  data: Organizer;
+}> => {
   const existingOrganizer = await prisma.organizer.findUnique({
     where: { id: organizerId },
   });
@@ -67,16 +81,27 @@ const updateOrganizer = async (
       ...data,
     },
   });
-  return updatedOrganizer;
+  return {
+    success: true,
+    message: "Organizer profile updated successfully",
+    data: updatedOrganizer,
+  };
 };
 
 /**
  * @function getSingleOrganizer
  * @description fetches a particular organizer profile with their upcoming events
  * @param {string} organizer_id - the id of the organizer profile to get
- * @returns {Promise<object>} the gotten organizer profile
+ * @returns {Promise<success: boolean; message: string; data: Organizer >} -
+ * the gotten organizer profile with events, success status and message
  */
-const getSingleOrganizer = async (organizer_id: string): Promise<Organizer> => {
+const getSingleOrganizer = async (
+  organizer_id: string
+): Promise<{
+  success: boolean;
+  message: string;
+  data: Organizer;
+}> => {
   const organizerData = await prisma.organizer.findUnique({
     where: { id: organizer_id },
     include: {
@@ -105,17 +130,29 @@ const getSingleOrganizer = async (organizer_id: string): Promise<Organizer> => {
   if (!organizerData) {
     throw new HttpError(404, "Organizer not found");
   }
-  return organizerData;
+  return {
+    success: true,
+    message: "Organizer retrieved successfully",
+    data: organizerData,
+  };
 };
 
 /**
  * @function getAllOrganizers
  * @description fetches all organizers in the database
- * @returns {Promise<Array<object>>} an array of all the organizers profiles
+ * @returns {Promise<success: boolean; message: string; data: Organizer[]>} list of organizers, success status and message
  */
-const getAllOrganizers = async (): Promise<Array<Organizer>> => {
+const getAllOrganizers = async (): Promise<{
+  success: boolean;
+  message: string;
+  data: Organizer[];
+}> => {
   const organizers = await prisma.organizer.findMany();
-  return organizers;
+  return {
+    success: true,
+    message: "Organizers retrieved successfully",
+    data: organizers,
+  };
 };
 
 export {

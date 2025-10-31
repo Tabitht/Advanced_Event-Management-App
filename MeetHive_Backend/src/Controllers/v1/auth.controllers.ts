@@ -12,6 +12,8 @@ import {
   rotateRefreshToken,
   revokeRefreshToken,
   revokeAllUserRefreshTokens,
+  initiateResetPassword,
+  resetPassword,
 } from "../../Services/auth.services.js";
 import { generateAccessToken } from "../../Utils/jwt.js";
 import { setAuthCookie, clearAuthCookie } from "../../Utils/cookies.js";
@@ -84,14 +86,16 @@ const loginController = async (
     const ip = request.ip;
     const userAgent = request.get("user-agent");
 
-    const { refreshToken } = await createRefreshToken(user.id, ip, userAgent);
-    const accessToken = generateAccessToken(user);
+    const { refreshToken } = await createRefreshToken(
+      user.data.id,
+      ip,
+      userAgent
+    );
+    const accessToken = generateAccessToken(user.data);
 
     setAuthCookie(response, refreshToken);
 
     return response.status(200).json({
-      success: true,
-      message: "Login successful",
       user,
       accessToken,
     });
@@ -121,18 +125,17 @@ const refreshController = async (
     const ip = request.ip;
     const userAgent = request.get("user-agent");
 
-    const { refreshToken, userId, role } = await rotateRefreshToken(
-      oldToken,
-      ip,
-      userAgent
-    );
-    const accessToken = generateAccessToken({ id: userId, role: role });
+    const token = await rotateRefreshToken(oldToken, ip, userAgent);
+    const accessToken = generateAccessToken({
+      id: token.data.userId,
+      role: token.data.role,
+    });
 
-    setAuthCookie(response, refreshToken);
+    setAuthCookie(response, token.data.refreshToken);
 
     return response.status(200).json({
-      success: true,
-      message: "Token refreshed successfully",
+      success: token.success,
+      message: token.message,
       accessToken,
     });
   } catch (error) {
@@ -141,6 +144,55 @@ const refreshController = async (
   }
 };
 
+/**
+ * @controller initiatePasswordResetController
+ * @description Initiates the password reset process by sending a reset email.
+ * @param {Request} request - Express request object
+ * @param {Response} response - Express response object
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<Response>} JSON response message
+ */
+const initiatePasswordResetController = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email } = request.body;
+    const initiatedRequest = await initiateResetPassword(email);
+    return response.status(200).json({
+      initiatedRequest,
+    });
+  } catch (error) {
+    next(error);
+    return;
+  }
+};
+
+/**
+ * @controller resetPasswordController
+ * @description Resets the user's password using a valid reset token.
+ * @param {Request} request - Express request object
+ * @param {Response} response - Express response object
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<Response>} JSON response message
+ */
+const resetPasswordController = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const { token, newPassword } = request.body;
+    const result = await resetPassword(token, newPassword);
+    return response.status(200).json({
+      result,
+    });
+  } catch (error) {
+    next(error);
+    return;
+  }
+};
 /**
  * @controller logoutController
  * @description Logs out the current user by revoking refresh token(s).
@@ -158,14 +210,13 @@ const logoutController = async (
     const rawToken = request.cookies.refreshToken || request.body.refreshToken;
     if (!rawToken) throw new HttpError(400, "Refresh token missing");
 
-    await revokeRefreshToken(rawToken);
+    const result = await revokeRefreshToken(rawToken);
 
     // Clear cookie
     clearAuthCookie(response);
 
     return response.status(200).json({
-      success: true,
-      message: "Logged out successfully",
+      result,
     });
   } catch (error) {
     next(error);
@@ -191,12 +242,11 @@ const logoutAllController = async (
     if (!userId) {
       throw new HttpError(401, "Not authenticated");
     }
-    await revokeAllUserRefreshTokens(userId);
+    const result = await revokeAllUserRefreshTokens(userId);
     response.clearCookie("refreshToken");
 
     return response.status(200).json({
-      success: true,
-      message: "Logged out from all devices",
+      result,
     });
   } catch (error) {
     next(error);
@@ -211,4 +261,6 @@ export {
   refreshController,
   logoutController,
   logoutAllController,
+  initiatePasswordResetController,
+  resetPasswordController,
 };

@@ -38,4 +38,26 @@ const sendVerificationEmail = async (
   });
 };
 
-export { sendVerificationEmail };
+const sendResetPasswordEmail = async (
+  email: string,
+  token: string
+): Promise<void> => {
+  const resetPasswordUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+  const htmlContent = `
+    <div>
+      <h1>Password Reset Request</h1>
+      <p>Please click the link below to reset your password:</p>
+      <a href="${resetPasswordUrl}">Reset Password</a>
+      <p>This link will expire in 30 mins</p>
+      <p>If you did not request a password reset, no further action is required.</p>
+      <p>Thank you!</p>
+    </div>
+    `;
+  await resend.emails.send({
+    from: "MeetHive <no-reply@resend.dev>",
+    to: `${email}`,
+    subject: `MeetHive Password Reset`,
+    html: `${htmlContent}`,
+  });
+};
+export { sendVerificationEmail, sendResetPasswordEmail };

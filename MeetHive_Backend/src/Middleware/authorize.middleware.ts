@@ -16,7 +16,7 @@ const authorize =
   (...allowedRoles: string[]) =>
   (request: AuthenticationRequest, _response: Response, next: NextFunction) => {
     if (!request.user) {
-      return next(new HttpError(401, "Unauthorized")); // Pass to error handler
+      return next(new HttpError(401, "Unauthorized"));
     }
 
     if (!allowedRoles.includes(request.user.role ?? "")) {
