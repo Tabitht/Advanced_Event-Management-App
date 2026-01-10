@@ -3,7 +3,7 @@
  * @description holds the crud operation and logic for the organizer feature
  */
 import prisma from "../config/prisma.js";
-import { Organizer, Role, Event } from "@prisma/client";
+import { Organizer, Role } from "@prisma/client";
 import {
   OrganizerData,
   UpdateOrganizerData,

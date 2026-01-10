@@ -1,0 +1,31 @@
+model TicketMaster {
+    id                  String        @id  @default(cuid())
+    eventId             String
+    purchaserUserId     String
+    orderReference      String
+    totalQty            Int
+    remainingQty        Int
+    createdAt           DateTime     @default(now())
+
+    event               Event @relation(fields: [eventId], references: [id])
+    user                User  @relation(fields: [purchaserUserId], references: [id])
+}
+
+model  Ticket {
+    id                  String      @id   @default(cuid())
+    masterId            String
+    code                String      @unique
+    email               String      @unique
+    assignedUserId      String
+    status              Status      @default(ISSUED)
+    createdAt           DateTime    @default(now())
+
+    ticketMaster        TicketMaster @relation(fields: [masterId], references: [id])
+    user                User         @relation(fields: [assignedUserId], references: [id])  
+}       
+
+enum Status {
+    ISSUED
+    USED
+    CANCELLED
+}

@@ -17,6 +17,8 @@ import {
   refreshController,
   logoutController,
   logoutAllController,
+  initiatePasswordResetController,
+  resetPasswordController,
 } from "../../Controllers/v1/auth.controllers.js";
 import authenticate from "../../Middleware/authenticate.middleware.js";
 
@@ -54,6 +56,23 @@ router.post("/login", authLimiter, validate(loginSchema), loginController);
  * @access Public
  */
 router.post("/refreshToken", refreshController);
+
+/**
+ * @route POST /api/v1/auth/initiatePasswordReset
+ * @description Initiate password reset process for a user
+ * @access Public
+ */
+router.post(
+  "/initiatePasswordReset",
+  authLimiter,
+  initiatePasswordResetController
+);
+
+/** * @route POST /api/v1/auth/resetPassword
+ * @description Resets the user's password using a valid reset token.
+ * @access Public
+ */
+router.post("/resetPassword", authLimiter, resetPasswordController);
 
 /**
  * @route POST /api/v1/auth/logout

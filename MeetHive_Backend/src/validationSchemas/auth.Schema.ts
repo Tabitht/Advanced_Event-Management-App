@@ -42,7 +42,7 @@ const registrationSchema = z.object({
  * @property {string} password - User's password (min 8 characters)
  */
 const loginSchema = z.object({
-  email: z.email({ error: "Invalid email address" }),
+  email: z.email({ error: "Invalid email format" }),
   password: z.string().min(8).max(128),
 });
 

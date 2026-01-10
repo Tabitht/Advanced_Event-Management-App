@@ -96,6 +96,16 @@ const getSingleEvent = async (
 }> => {
   const eventData = await prisma.event.findUnique({
     where: { id: eventId, isArchived: false },
+    include: {
+      organizer: {
+        select: {
+          name: true,
+          slug: true,
+          bannerUrl: true,
+          logoUrl: true,
+        },
+      },
+    },
   });
   if (!eventData) {
     throw new HttpError(404, "Event not found");

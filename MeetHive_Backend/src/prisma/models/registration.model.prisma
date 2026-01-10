@@ -1,0 +1,12 @@
+model Registration {
+    id              String         @id  @default(cuid())
+    eventId         String
+    userId          String
+    ticketId        String
+    status          String
+    registeredAt    DateTime         @default(now()) 
+
+    event           Event   @relation(fields: [eventId], references: [id])
+    user            User    @relation(fields: [userId], references: [id])
+    ticket          Ticket  @relation(fields: [ticketId], references: [id])
+}
