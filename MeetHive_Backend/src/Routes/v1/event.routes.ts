@@ -22,7 +22,12 @@ const router = Router();
  * @description Create a new event for a specific organizer
  * @access Private
  */
-router.post("/organizer/:organizerId", authenticate, createEventController);
+router.post(
+  "/organizer/:organizerId",
+  authenticate,
+  authorize("ORGANIZER"),
+  createEventController
+);
 
 /**
  * @route PUT /api/v1/events/:eventId

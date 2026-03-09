@@ -16,12 +16,12 @@ import HttpError from "../Utils/HttpError.js";
  */
 const createEvent = async (
   organizerId: string,
-  data: EventData
+  eventData: EventData
 ): Promise<{ success: boolean; message: string; data: Event }> => {
   const newEvent = await prisma.event.create({
     data: {
       organizerId,
-      ...data,
+      ...eventData,
     },
   });
   return {

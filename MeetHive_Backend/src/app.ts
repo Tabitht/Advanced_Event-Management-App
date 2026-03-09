@@ -7,6 +7,8 @@ import dotenv from "dotenv";
 import errorHandler from "./Middleware/errorHandler.middleware.js";
 import { generalLimiter } from "./Middleware/rateLimiter.middleware.js";
 import authRoutes from "./Routes/v1/auth.routes.js";
+import organizationRoutes from "./Routes/v1/organizer.routes.js";
+import eventRoutes from "./Routes/v1/event.routes.js";
 
 dotenv.config();
 
@@ -35,6 +37,8 @@ app.use(generalLimiter);
 
 // Routes
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/organizers", organizationRoutes);
+app.use("/api/v1/events", eventRoutes);
 
 app.use(errorHandler);
 

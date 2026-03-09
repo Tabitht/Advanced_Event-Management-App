@@ -32,6 +32,7 @@ const createOrganizer = async (
       const organizer = await transaction.organizer.create({
         data: {
           userId,
+          slug: data.name.toLowerCase().replace(/\s+/g, "-"),
           ...data,
         },
       });

@@ -57,7 +57,7 @@ const verifyEmailController = async (
   next: NextFunction
 ) => {
   try {
-    const token = await verifyUserEmail(request.body);
+    const token = await verifyUserEmail(request.body.token);
 
     return response.status(201).json({ token });
   } catch (error) {

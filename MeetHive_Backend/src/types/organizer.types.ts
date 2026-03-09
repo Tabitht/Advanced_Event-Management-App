@@ -5,7 +5,6 @@
 
 interface OrganizerData {
   name: string;
-  slug: string;
   bio?: string;
   logoUrl?: string;
   bannerUrl?: string;
