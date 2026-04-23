@@ -18,7 +18,7 @@ import {
 import { generateAccessToken } from "../../Utils/jwt.js";
 import { setAuthCookie, clearAuthCookie } from "../../Utils/cookies.js";
 import { AuthenticationRequest } from "../../types/user.types.js";
-import HttpError from "../../Utils/HttpError.js";
+import HttpError from "../../Utils/httpError.js";
 
 /**
  * @controller registerController

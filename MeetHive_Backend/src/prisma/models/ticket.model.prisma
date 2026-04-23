@@ -6,6 +6,8 @@ model TicketMaster {
     totalQty            Int
     remainingQty        Int
     createdAt           DateTime     @default(now())
+    tickets             Ticket[]
+    payment             Payment?
 
     event               Event @relation(fields: [eventId], references: [id])
     user                User  @relation(fields: [purchaserUserId], references: [id])

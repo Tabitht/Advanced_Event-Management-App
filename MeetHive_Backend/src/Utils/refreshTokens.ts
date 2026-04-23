@@ -5,7 +5,7 @@
 import crypto from "crypto";
 import prisma from "../config/prisma.js";
 import { Prisma } from "@prisma/client";
-import HttpError from "./HttpError.js";
+import HttpError from "./httpError.js";
 
 /**
  * @function generateToken

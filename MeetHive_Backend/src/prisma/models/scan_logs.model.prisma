@@ -1,0 +1,7 @@
+model ScanLog {
+  id        String   @id @default(uuid())
+  ticketId  String?
+  masterId  String
+  scannedAt DateTime @default(now())
+  status    String
+}

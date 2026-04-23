@@ -11,7 +11,7 @@ import {
   validateExistingToken,
 } from "../Utils/refreshTokens.js";
 import { UserData } from "../types/user.types.js";
-import HttpError from "../Utils/HttpError.js";
+import HttpError from "../Utils/httpError.js";
 import {
   sendVerificationEmail,
   sendResetPasswordEmail,

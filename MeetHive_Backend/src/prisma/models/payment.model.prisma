@@ -1,0 +1,17 @@
+model Payment {
+  id              String   @id @default(cuid())
+  userId          String
+  eventId         String
+  masterTicketId  String
+  providerTxId    String?  @unique
+  amount          Int
+  currency        String
+  status          PaymentStatus
+  createdAt       DateTime @default(now())
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}

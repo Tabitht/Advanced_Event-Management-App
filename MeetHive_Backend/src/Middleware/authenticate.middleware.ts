@@ -4,7 +4,7 @@
  */
 import { Response, NextFunction } from "express";
 import { verifyAccessToken } from "../Utils/jwt.js";
-import HttpError from "../Utils/HttpError.js";
+import HttpError from "../Utils/httpError.js";
 import { AuthenticationRequest } from "../types/user.types.js";
 
 /**

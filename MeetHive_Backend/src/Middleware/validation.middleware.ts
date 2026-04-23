@@ -4,7 +4,7 @@
  */
 import { Request, Response, NextFunction } from "express";
 import { ZodType, ZodError } from "zod";
-import HttpError from "../Utils/HttpError.js";
+import HttpError from "../Utils/httpError.js";
 
 /**
  * @function validate

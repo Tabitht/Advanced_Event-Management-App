@@ -3,7 +3,7 @@
  * @description central error handler for handling errors and their status code
  */
 import { Request, Response, NextFunction } from "express";
-import HttpError from "../Utils/HttpError.js";
+import HttpError from "../Utils/httpError.js";
 
 /**
  * @function errorHandler

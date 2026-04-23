@@ -1,5 +1,5 @@
 /**
- * @module src/Utils/HttpError.ts
+ * @module src/Utils/httpError.ts
  * @description Utility functions for creating a custom error class with HTTP status codes.
  */
 class HttpError extends Error {

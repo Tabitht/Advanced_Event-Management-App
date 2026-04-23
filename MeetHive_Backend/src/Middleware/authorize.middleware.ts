@@ -4,7 +4,7 @@
  */
 import { NextFunction, Response } from "express";
 import { AuthenticationRequest } from "../types/user.types.js";
-import HttpError from "../Utils/HttpError.js";
+import HttpError from "../Utils/httpError.js";
 
 /**
  * @function authorize

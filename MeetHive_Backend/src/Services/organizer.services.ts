@@ -8,7 +8,7 @@ import {
   OrganizerData,
   UpdateOrganizerData,
 } from "../types/organizer.types.js";
-import HttpError from "../Utils/HttpError.js";
+import HttpError from "../Utils/httpError.js";
 
 /**
  * @function createOrganizer

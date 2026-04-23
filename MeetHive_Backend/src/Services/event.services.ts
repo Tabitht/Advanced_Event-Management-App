@@ -5,7 +5,7 @@
 import prisma from "../config/prisma.js";
 import { EventData, UpdateEventData } from "../types/event.types.js";
 import { Event } from "@prisma/client";
-import HttpError from "../Utils/HttpError.js";
+import HttpError from "../Utils/httpError.js";
 
 /**
  * @function createEvent
