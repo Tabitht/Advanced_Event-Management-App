@@ -1,16 +1,19 @@
 model TicketMaster {
-    id                  String        @id  @default(cuid())
-    eventId             String
-    purchaserUserId     String
-    orderReference      String
-    totalQty            Int
-    remainingQty        Int
-    createdAt           DateTime     @default(now())
-    tickets             Ticket[]
-    payment             Payment?
+  id                String @id @default(cuid())
 
-    event               Event @relation(fields: [eventId], references: [id])
-    user                User  @relation(fields: [purchaserUserId], references: [id])
+  orderId           String @unique
+
+  purchaserUserId   String
+  eventId           String
+
+  totalQty          Int
+  remainingQty      Int
+
+  createdAt         DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  tickets Ticket[]
 }
 
 model  Ticket {
@@ -25,6 +28,25 @@ model  Ticket {
     ticketMaster        TicketMaster @relation(fields: [masterId], references: [id])
     user                User         @relation(fields: [assignedUserId], references: [id])  
 }       
+
+model EventTicketType {
+  id          String   @id @default(cuid())
+
+  eventId     String
+
+  name        String
+  description String?
+
+  price       Int
+  quantity    Int
+  sold        Int @default(0)
+
+  createdAt   DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id])
+
+  ticketsMaster TicketMaster[]
+}
 
 enum Status {
     ISSUED

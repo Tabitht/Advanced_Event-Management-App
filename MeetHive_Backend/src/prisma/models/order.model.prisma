@@ -1,0 +1,51 @@
+model Order {
+  id              String   @id @default(cuid())
+
+  userId          String
+  organizerId     String
+  eventId         String
+
+  orderReference  String   @unique
+
+  status          OrderStatus @default(PENDING)
+
+  totalAmount     Int
+  currency        String   @default("NGN")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+  organizer Organizer @relation(fields: [organizerId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
+
+  orderItems OrderItem[]
+  payments Payment[]
+
+  ticketsMaster TicketsMaster?
+}
+
+model OrderItem {
+  id              String @id @default(cuid())
+
+  orderId         String
+  ticketTypeId    String
+
+  quantity        Int
+
+  unitPrice       Int
+  totalPrice      Int
+
+  createdAt       DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  ticketType EventTicketType @relation(fields: [ticketTypeId], references: [id])
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  CANCELLED
+  EXPIRED
+}

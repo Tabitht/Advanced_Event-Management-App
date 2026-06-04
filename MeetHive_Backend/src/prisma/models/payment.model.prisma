@@ -1,17 +1,26 @@
 model Payment {
-  id              String   @id @default(cuid())
-  userId          String
-  eventId         String
-  masterTicketId  String
-  providerTxId    String?  @unique
-  amount          Int
-  currency        String
-  status          PaymentStatus
-  createdAt       DateTime @default(now())
-}
+  id                String @id @default(cuid())
 
+  orderId           String
+
+  provider          PaymentProvider
+  providerTxId      String? @unique
+
+  amount            Int
+  currency          String
+
+  status            PaymentStatus
+
+  paidAt            DateTime?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id])
+}
 enum PaymentStatus {
   PENDING
   SUCCESS
   FAILED
+  REFUNDED
 }
