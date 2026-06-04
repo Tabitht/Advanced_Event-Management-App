@@ -16,6 +16,9 @@ model User {
   resetTokens         ResetToken[]
   verificationTokens  VerificationToken[]
   subscriptions       Subscription[]
+  orders              Order[]
+  registrations       Registration[]
+  tickets             Ticket[]
   organizer           Organizer?          // users that are organizers as well
 }
 

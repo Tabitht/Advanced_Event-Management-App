@@ -22,7 +22,7 @@ model Order {
   orderItems OrderItem[]
   payments Payment[]
 
-  ticketsMaster TicketsMaster?
+  ticketsMaster TicketMaster?
 }
 
 model OrderItem {

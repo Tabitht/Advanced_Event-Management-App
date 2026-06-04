@@ -6,14 +6,17 @@ model TicketMaster {
   purchaserUserId   String
   eventId           String
 
+  ticketTypeId      String
+
   totalQty          Int
   remainingQty      Int
 
   createdAt         DateTime @default(now())
 
-  order Order @relation(fields: [orderId], references: [id])
-
-  tickets Ticket[]
+  order             Order @relation(fields: [orderId], references: [id])
+  ticketType      EventTicketType @relation(fields: [ticketTypeId], references: [id])
+  
+  tickets     Ticket[]
 }
 
 model  Ticket {
@@ -26,7 +29,8 @@ model  Ticket {
     createdAt           DateTime    @default(now())
 
     ticketMaster        TicketMaster @relation(fields: [masterId], references: [id])
-    user                User         @relation(fields: [assignedUserId], references: [id])  
+    user                User         @relation(fields: [assignedUserId], references: [id]) 
+    registrations       Registration[] 
 }       
 
 model EventTicketType {
@@ -43,9 +47,10 @@ model EventTicketType {
 
   createdAt   DateTime @default(now())
 
+  //Relations
   event Event @relation(fields: [eventId], references: [id])
-
   ticketsMaster TicketMaster[]
+  orderItem         OrderItem[]
 }
 
 enum Status {

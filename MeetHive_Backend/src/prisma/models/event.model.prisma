@@ -13,5 +13,8 @@ model Event {
     createdAt      DateTime     @default(now())
 
     //Relations
-    organizer      Organizer    @relation(fields: [organizerId], references: [id], onDelete: Cascade) //relation to Organizer table
+    organizer      Organizer    @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+    orders         Order[] //relation to order table
+    registrations  Registration[]
+    ticketTypes        EventTicketType[]
 }

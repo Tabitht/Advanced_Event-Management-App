@@ -24,3 +24,8 @@ enum PaymentStatus {
   FAILED
   REFUNDED
 }
+enum PaymentProvider {
+  STRIPE
+  PAYSTACK
+  FLUTTERWAVE
+}
