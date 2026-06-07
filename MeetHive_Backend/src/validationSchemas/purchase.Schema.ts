@@ -5,7 +5,32 @@
 
 import { z } from "zod";
 
-export const purchaseSchema = z.object({
-  qty: z.number().int().min(1, "Quantity must be at least 1"),
-  attendeeEmails: z.array(z.string().email()).optional(),
-});
+/**
+ * @description Validation schema for purchasing a ticket
+ * @type {Object} PurchaseSchema
+ * @property {string} ticketType - The type of ticket to be purchased
+ * @property {int} quantity - the number of ticket to be bought
+ * @property {array} attendeeEmails - Emails of tickets user buying tickets/ group tickets users email
+ */
+const PurchaseSchema = z
+  .object({
+    ticketType: z.string().min(1, "Ticket type is required"),
+    quantity: z
+      .number()
+      .int("Quantity must be an integer")
+      .min(1, "Quantity must be at least 1"),
+    attendeeEmails: z.array(z.email("Invalid email address")).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.attendeeEmails && data.attendeeEmails.length > data.quantity) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["attendeeEmails"],
+        message: "Attendee emails cannot exceed ticket quantity",
+      });
+    }
+  });
+
+export type PurchaseTicketInput = z.infer<typeof PurchaseSchema>;
+
+export { PurchaseSchema };

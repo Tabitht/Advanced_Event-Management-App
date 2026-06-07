@@ -7,7 +7,7 @@ import * as z from "zod";
 
 /**
  * @description Validation schema for creating an event
- * @type {Object} createEventSchema
+ * @type {Object} CreateEventSchema
  * @property {string} title - Event title (min 5 characters, max 200 characters)
  * @property {string} description - Event description (min 10 characters, max 5000 characters)
  * @property {string} location - Event location (min 5 characters, max 300 characters)
@@ -17,7 +17,7 @@ import * as z from "zod";
  * @property {int} capacity - Maximum number of attendees (must be a positive integer)
  * @property {boolean} isPublished - Event published status
  */
-const createEventSchema = z
+const CreateEventSchema = z
   .object({
     title: z.string().trim().min(5).max(200),
     description: z.string().trim().min(10).max(5000),
@@ -42,7 +42,7 @@ const createEventSchema = z
 
 /**
  * @description Validation schema for updating an event
- * @type {Object} updateEventSchema
+ * @type {Object} UpdateEventSchema
  * @property {string} [title] - Event title (min 5 characters, max 200 characters)
  * @property {string} [description] - Event description (min 10 characters, max 5000 characters)
  * @property {string} [location] - Event location (min 5 characters, max 300 characters)
@@ -52,7 +52,7 @@ const createEventSchema = z
  * @property {int} [capacity] - Maximum number of attendees (must be a positive integer)
  * @property {boolean} [isPublished] - Event published status
  */
-const updateEventSchema = z
+const UpdateEventSchema = z
   .object({
     title: z.string().trim().min(5).max(200).optional(),
     description: z.string().trim().min(10).max(5000).optional(),
@@ -80,7 +80,7 @@ const updateEventSchema = z
 
 /**
  * @description Validation schema for publishing an event
- * @type {Object} publishEventSchema
+ * @type {Object} PublishEventSchema
  * @property {string} id - Event ID
  * @property {string} title - Event title (min 5 characters)
  * @property {string} description - Event description (min 10 characters)
@@ -88,7 +88,7 @@ const updateEventSchema = z
  * @property {DateTime} endAt - Event end date and time (must be after startAt)
  * @property {int} capacity - Maximum number of attendees (must be a positive integer)
  */
-const publishEventSchema = z
+const PublishEventSchema = z
   .object({
     id: z.string(), // event id to publish
     title: z.string().trim().min(5),
@@ -119,4 +119,4 @@ const publishEventSchema = z
     }
   });
 
-export { createEventSchema, updateEventSchema, publishEventSchema };
+export { CreateEventSchema, UpdateEventSchema, PublishEventSchema };

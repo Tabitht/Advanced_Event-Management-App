@@ -44,6 +44,7 @@ model EventTicketType {
   price       Int
   quantity    Int
   sold        Int @default(0)
+  reserved    Int @default(0)
 
   createdAt   DateTime @default(now())
 

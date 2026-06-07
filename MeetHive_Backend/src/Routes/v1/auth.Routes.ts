@@ -7,8 +7,8 @@ import { Router } from "express";
 import validate from "../../Middleware/validation.middleware.js";
 import { authLimiter } from "../../Middleware/rateLimiter.middleware.js";
 import {
-  registrationSchema,
-  loginSchema,
+  RegistrationSchema,
+  LoginSchema,
 } from "../../validationSchemas/auth.Schema.js";
 import {
   registerController,
@@ -32,7 +32,7 @@ const router = Router();
 router.post(
   "/register",
   authLimiter,
-  validate(registrationSchema),
+  validate(RegistrationSchema),
   registerController
 );
 
@@ -48,7 +48,7 @@ router.post("/verifyEmail", authLimiter, verifyEmailController);
  * @description Log in a user
  * @access Public
  */
-router.post("/login", authLimiter, validate(loginSchema), loginController);
+router.post("/login", authLimiter, validate(LoginSchema), loginController);
 
 /**
  * @route POST /api/v1/auth/refreshToken

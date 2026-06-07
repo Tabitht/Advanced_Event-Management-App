@@ -6,6 +6,12 @@
 import { Router } from "express";
 import authenticate from "../../Middleware/authenticate.middleware.js";
 import authorize from "../../Middleware/authorize.middleware.js";
+import validate from "../../Middleware/validation.middleware.js";
+import {
+  CreateEventSchema,
+  UpdateEventSchema,
+  PublishEventSchema,
+} from "../../validationSchemas/event.Schema.js";
 import {
   createEventController,
   updateEventController,
@@ -26,6 +32,7 @@ router.post(
   "/organizer/:organizerId",
   authenticate,
   authorize("ORGANIZER"),
+  validate(CreateEventSchema),
   createEventController
 );
 
@@ -38,6 +45,7 @@ router.put(
   "/:eventId",
   authenticate,
   authorize("ORGANIZER"),
+  validate(UpdateEventSchema),
   updateEventController
 );
 
@@ -57,6 +65,7 @@ router.patch(
   "/publish/:eventId",
   authenticate,
   authorize("ORGANIZER"),
+  validate(PublishEventSchema),
   publishEventController
 );
 

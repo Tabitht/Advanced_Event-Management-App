@@ -13,7 +13,7 @@ import * as z from "zod";
  * @property {string} [avatarUrl] - Optional URL for user's avatar image
  * @property {string} [bio] - Optional short bio (max 500 characters)
  */
-const registrationSchema = z.object({
+const RegistrationSchema = z.object({
   name: z
     .string()
     .min(2, { error: "Name must be at least 2 characters long" })
@@ -41,9 +41,9 @@ const registrationSchema = z.object({
  * @property {string} email - User's email address (must be valid format)
  * @property {string} password - User's password (min 8 characters)
  */
-const loginSchema = z.object({
+const LoginSchema = z.object({
   email: z.email({ error: "Invalid email format" }),
   password: z.string().min(8).max(128),
 });
 
-export { registrationSchema, loginSchema };
+export { RegistrationSchema, LoginSchema };

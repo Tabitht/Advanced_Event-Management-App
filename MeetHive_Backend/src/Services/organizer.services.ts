@@ -1,5 +1,5 @@
 /**
- * @module src/Services/organizer.services.transaction
+ * @module src/Services/organizer.services.ts
  * @description holds the crud operation and logic for the organizer feature
  */
 import prisma from "../config/prisma.js";

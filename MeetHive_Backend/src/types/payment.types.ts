@@ -10,9 +10,19 @@ interface InitializePaymentPayload {
 }
 
 interface PaystackInitResponse {
-  authorizationUrl: string;
-  accessCode: string;
-  reference: string;
+  data: {
+    authorization_url: string;
+    access_code: string;
+    reference: string;
+  };
+}
+interface PaystackErrorResponse {
+  message?: string;
+  status?: boolean;
 }
 
-export type { InitializePaymentPayload, PaystackInitResponse };
+export type {
+  InitializePaymentPayload,
+  PaystackInitResponse,
+  PaystackErrorResponse,
+};
