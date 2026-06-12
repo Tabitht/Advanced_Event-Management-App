@@ -3,21 +3,14 @@
  * @description business logic for the purchase feature
  */
 
-import {
-  PaymentProvider,
-  PaymentStatus,
-  Order,
-  OrderItem,
-  Payment,
-  Event,
-  Prisma,
-} from "@prisma/client";
+import { PaymentProvider, PaymentStatus, Event, Prisma } from "@prisma/client";
 import prisma from "../config/prisma.js";
 import { PurchaseTicketsInput } from "../types/purchase.types.js";
 import { generateOrderReference } from "../Utils/generateReference.js";
+import { initializeOrderPayment } from "./payment.services.js";
 import HttpError from "../Utils/httpError.js";
 
-/*
+/**
  * @function validateEvent
  * @description checks if the event is valid for ticket purchase
  * @param {string} eventId - the id of the event to validate
@@ -43,8 +36,8 @@ const validateEvent = async (eventId: string): Promise<Event> => {
 };
 
 /**
- * @function purchaseTickets
- * @description handles the logic for purchasing a tickets for an event, including
+ * @function initializeTicketPurchase
+ * @description handles the logic for initializing a ticket purchase for an event, including
  * validating the event, checking ticket availability, creating an order and initiating payment.
  * @param {string} userId - the id of the user making the purchase
  * @param {string} eventId - the id of the event for which tickets are being purchased
@@ -52,16 +45,12 @@ const validateEvent = async (eventId: string): Promise<Event> => {
  * and attendeeEmails
  * @returns {Promise<{transactionResult: {order: Order; orderItem: OrderItem; payment: Payment}; success: boolean; message: string}>} the result of the purchase transaction, success status and message
  */
-const purchaseTickets = async ({
+const initializeTicketPurchase = async ({
   userId,
   eventId,
   ...purchaseData
 }: PurchaseTicketsInput & { userId: string; eventId: string }): Promise<{
-  transactionResult: {
-    order: Order;
-    orderItem: OrderItem;
-    payment: Payment;
-  };
+  result: { authorizationUrl: string; accessCode: string; reference: string };
   success: boolean;
   message: string;
 }> => {
@@ -91,10 +80,15 @@ const purchaseTickets = async ({
       }
       const price = ticketType.price * purchaseData.quantity;
       const orderReference = generateOrderReference();
-      ticketType.reserved += purchaseData.quantity;
       await transaction.eventTicketType.update({
-        where: { id: ticketType.id },
-        data: { reserved: ticketType.reserved },
+        where: {
+          id: ticketType.id,
+        },
+        data: {
+          reserved: {
+            increment: purchaseData.quantity,
+          },
+        },
       });
       const order = await transaction.order.create({
         data: {
@@ -106,7 +100,7 @@ const purchaseTickets = async ({
           expiresAt: new Date(Date.now() + 15 * 60 * 1000), // Order expires in 15 minutes
         },
       });
-      const orderItem = await transaction.orderItem.create({
+      await transaction.orderItem.create({
         data: {
           orderId: order.id,
           ticketTypeId: purchaseData.ticketTypeId,
@@ -125,8 +119,6 @@ const purchaseTickets = async ({
         },
       });
       return {
-        order,
-        orderItem,
         payment,
       };
     },
@@ -134,11 +126,15 @@ const purchaseTickets = async ({
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
     }
   );
+  const result = await initializeOrderPayment({
+    paymentId: transactionResult.payment.id,
+    email: purchaseData.attendeeEmails[0]!,
+  });
   return {
-    transactionResult,
+    result,
     success: true,
     message: "Payment Initiated Successfully, Proceed to Payment Provider",
   };
 };
 
-export { purchaseTickets };
+export { initializeTicketPurchase };

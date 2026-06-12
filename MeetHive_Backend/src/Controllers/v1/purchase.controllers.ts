@@ -5,7 +5,7 @@
 
 import { Response, NextFunction } from "express";
 import { AuthenticationRequest } from "../../types/user.types.js";
-import { purchaseTickets } from "../../Services/purchase.services.js";
+import { initializeTicketPurchase } from "../../Services/purchase.services.js";
 
 /**
  * @controller purchaseTicketsController
@@ -25,7 +25,7 @@ const purchaseTicketsController = async (
     if (!eventId) {
       return response.status(400).json({ error: "eventId is required" });
     }
-    const result = await purchaseTickets({
+    const result = await initializeTicketPurchase({
       userId: request.user?.id,
       eventId,
       ...request.body,

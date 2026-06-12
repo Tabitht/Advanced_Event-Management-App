@@ -19,7 +19,9 @@ const PurchaseSchema = z
       .number()
       .int("Quantity must be an integer")
       .min(1, "Quantity must be at least 1"),
-    attendeeEmails: z.array(z.email("Invalid email address")).optional(),
+    attendeeEmails: z
+      .array(z.email("Invalid email address"))
+      .min(1, "At least one attendee email is required"),
   })
   .superRefine((data, ctx) => {
     if (data.attendeeEmails && data.attendeeEmails.length > data.quantity) {
